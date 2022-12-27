@@ -25,6 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/substate"
 )
 
 // StateProcessor is a basic Processor, which takes care of transitioning
@@ -62,12 +63,28 @@ func (p *StateProcessor) Process(block *EvmBlock, statedb *state.StateDB, cfg vm
 	)
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions {
+		msg, _ := tx.AsMessage(types.MakeSigner(p.config, block.Header().Number))
 		statedb.Prepare(tx.Hash(), block.Hash, i)
 		receipt, _, fee, skip, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, block.Header(), tx, usedGas, cfg, strict)
+
+
 		if !strict && (skip || err != nil) {
 			skipped = append(skipped, uint(i))
 			continue
 		}
+
+
+		// save tx substate into DBs, merge block hashes to env
+		etherBlock := block.RecordingEthBlock()
+		recording := substate.NewSubstate(
+			statedb.SubstatePreAlloc,
+			statedb.SubstatePostAlloc,
+			substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
+			substate.NewSubstateMessage(&msg),
+			substate.NewSubstateResult(receipt),
+		)
+		substate.PutSubstate(block.NumberU64(), i, recording)
+
 		totalFee.Add(totalFee, fee)
 		receipts = append(receipts, receipt)
 		allLogs = append(allLogs, receipt.Logs...)
@@ -162,6 +179,7 @@ func ApplyTransaction(
 	receipt.BlockHash = statedb.BlockHash()
 	receipt.BlockNumber = header.Number
 	receipt.TransactionIndex = uint(statedb.TxIndex())
+	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
 
 	return receipt, result.UsedGas, fee, false, err
 }

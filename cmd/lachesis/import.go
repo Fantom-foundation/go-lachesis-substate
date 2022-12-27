@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/substate"
 	"github.com/status-im/keycard-go/hexutils"
 	"gopkg.in/urfave/cli.v1"
 
@@ -30,6 +31,10 @@ func importEvents(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {
 		utils.Fatalf("This command requires an argument.")
 	}
+
+        substate.SetSubstateDirectory("./substate.lachesis")
+        substate.OpenSubstateDB()
+        defer substate.CloseSubstateDB()
 
 	// avoid P2P interaction, API calls and events emitting
 	cfg := makeAllConfigs(ctx)

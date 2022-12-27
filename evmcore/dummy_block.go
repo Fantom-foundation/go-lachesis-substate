@@ -96,6 +96,25 @@ func (h *EvmHeader) EthHeader() *types.Header {
 	}
 }
 
+// EthHeader returns header in ETH format
+func (h *EvmHeader) RecordingEthHeader() *types.Header {
+	// NOTE: incomplete conversion
+	return &types.Header{
+		Number:     h.Number,
+		Coinbase:   h.Coinbase,
+		GasLimit:   h.GasLimit, // don't use h.GasLimit (too much bits) here to avoid parsing issues
+		GasUsed:    h.GasUsed,
+		Root:       h.Root,
+		TxHash:     h.TxHash,
+		ParentHash: h.ParentHash,
+		Time:       uint64(h.Time.Unix()),
+		Extra:      h.Hash.Bytes(),
+
+		Difficulty: big.NewInt(1),
+	}
+}
+
+
 // Header is a copy of EvmBlock.EvmHeader.
 func (b *EvmBlock) Header() *EvmHeader {
 	if b == nil {
@@ -118,4 +137,11 @@ func (b *EvmBlock) EthBlock() *types.Block {
 		return nil
 	}
 	return types.NewBlock(b.EvmHeader.EthHeader(), b.Transactions, nil, nil, new(trie.Trie))
+}
+
+func (b *EvmBlock) RecordingEthBlock() *types.Block {
+	if b == nil {
+		return nil
+	}
+	return types.NewBlock(b.EvmHeader.RecordingEthHeader(), b.Transactions, nil, nil, new(trie.Trie))
 }
