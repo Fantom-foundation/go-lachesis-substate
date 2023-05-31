@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/substate"
 	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/Fantom-foundation/go-lachesis/eventcheck"
@@ -212,6 +213,27 @@ func (s *Service) applyNewState(
 	if sealEpoch {
 		s.onEpochSealed(block, cheaters)
 	}
+	
+
+	// Record substate of sfc
+	// call finanlize for sfc chnages
+	statedb.Finalise(true)
+	// create dummy message for sfc contract
+	tx := types.NewTransaction(0, common.Address{}, &big.Int{}, 0, &big.Int{}, []byte{}) 
+	msg, _ := tx.AsMessage(types.MakeSigner(s.config.Net.EvmChainConfig(), new(big.Int).SetUint64(uint64(block.Index))))
+	// create dummy ethereum block
+	etherBlock := evmBlock.RecordingEthBlock()
+	// create dummy receipt
+	receipt := types.NewReceipt([]byte{}, false, 0) 
+	// perform recording
+	recording := substate.NewSubstate(
+		statedb.SubstatePreAlloc,
+		statedb.SubstatePostAlloc,
+		substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
+		substate.NewSubstateMessage(&msg),
+		substate.NewSubstateResult(receipt),
+	)
+	substate.PutSubstate(uint64(block.Index), 999, recording)
 
 	// Get state root
 	newStateHash, err := statedb.Commit(true)
