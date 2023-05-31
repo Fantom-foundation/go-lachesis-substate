@@ -22,8 +22,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/substate"
+	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/Fantom-foundation/go-lachesis/inter"
 	"github.com/Fantom-foundation/go-lachesis/lachesis"
@@ -48,6 +51,26 @@ func ApplyGenesis(db ethdb.Database, net *lachesis.Config) (*EvmBlock, error) {
 			statedb.SetState(addr, key, value)
 		}
 	}
+
+	// Record substate of sfc
+	// call finanlize for sfc chnages
+	statedb.Finalise(true)
+	// create dummy message for sfc contract
+	tx := types.NewTransaction(0, common.Address{}, &big.Int{}, 0, &big.Int{}, []byte{})
+	msg, _ := tx.AsMessage(types.MakeSigner(net.EvmChainConfig(), new(big.Int).SetUint64(uint64(0))))
+	// create dummy ethereum block
+	etherBlock := types.NewBlock(&types.Header{Number: big.NewInt(int64(0))}, nil, nil, nil, new(trie.Trie))
+	// create dummy receipt
+	receipt := types.NewReceipt([]byte{}, false, 0)
+	// perform recording
+	recording := substate.NewSubstate(
+		statedb.SubstatePreAlloc,
+		statedb.SubstatePostAlloc,
+		substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
+		substate.NewSubstateMessage(&msg),
+		substate.NewSubstateResult(receipt),
+	)
+	substate.PutSubstate(uint64(0), 999, recording)
 
 	// initial block
 	root, err := statedb.Commit(true)

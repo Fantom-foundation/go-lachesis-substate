@@ -32,11 +32,10 @@ require (
 	github.com/tyler-smith/go-bip39 v1.0.2
 	github.com/uber/jaeger-client-go v2.20.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
-	github.com/urfave/cli/v2 v2.23.7
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/urfave/cli.v1 v1.22.1
 )
 
 replace gopkg.in/urfave/cli.v1 => github.com/urfave/cli v1.20.0
 
-replace github.com/ethereum/go-ethereum => github.com/Fantom-foundation/go-ethereum-substate rr1.9.22-ftm-0.5
+replace github.com/ethereum/go-ethereum => github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230529081604-7d938788b808
