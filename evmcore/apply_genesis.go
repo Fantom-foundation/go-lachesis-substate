@@ -43,6 +43,7 @@ func ApplyGenesis(db ethdb.Database, net *lachesis.Config) (*EvmBlock, error) {
 	if err != nil {
 		return nil, err
 	}
+	statedb.Prepare(common.Hash{}, common.Hash{}, 999)
 	for addr, account := range net.Genesis.Alloc.Accounts {
 		statedb.AddBalance(addr, account.Balance)
 		statedb.SetCode(addr, account.Code)

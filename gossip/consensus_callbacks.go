@@ -191,6 +191,7 @@ func (s *Service) applyNewState(
 	// Process EVM txs
 	block, evmBlock, totalFee, receipts := s.executeEvmTransactions(block, evmBlock, statedb)
 
+	statedb.Prepare(common.Hash{}, evmBlock.Hash, 999)
 	// memorize block position of each tx, for indexing and origination scores
 	for i, tx := range evmBlock.Transactions {
 		// not skipped txs only
