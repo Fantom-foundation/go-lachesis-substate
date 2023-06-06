@@ -38,4 +38,4 @@ require (
 
 replace gopkg.in/urfave/cli.v1 => github.com/urfave/cli v1.20.0
 
-replace github.com/ethereum/go-ethereum => github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230529081604-7d938788b808
+replace github.com/ethereum/go-ethereum => github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230605101121-84063bd50734

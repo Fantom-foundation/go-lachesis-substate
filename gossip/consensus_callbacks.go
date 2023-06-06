@@ -215,10 +215,13 @@ func (s *Service) applyNewState(
 		s.onEpochSealed(block, cheaters)
 	}
 	
+	// Get state root
+	newStateHash, err := statedb.Commit(true)
+	if err != nil {
+		s.Log.Crit("Failed to commit state", "err", err)
+	}
 
 	// Record substate of sfc
-	// call finanlize for sfc chnages
-	statedb.Finalise(true)
 	// create dummy message for sfc contract
 	tx := types.NewTransaction(0, common.Address{}, &big.Int{}, 0, &big.Int{}, []byte{}) 
 	msg, _ := tx.AsMessage(types.MakeSigner(s.config.Net.EvmChainConfig(), new(big.Int).SetUint64(uint64(block.Index))))
@@ -228,19 +231,14 @@ func (s *Service) applyNewState(
 	receipt := types.NewReceipt([]byte{}, false, 0) 
 	// perform recording
 	recording := substate.NewSubstate(
-		statedb.SubstatePreAlloc,
-		statedb.SubstatePostAlloc,
+		make(substate.SubstateAlloc),
+		statedb.SubstatePostAlloc.Diff(statedb.SubstatePreAlloc),
 		substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
 		substate.NewSubstateMessage(&msg),
 		substate.NewSubstateResult(receipt),
 	)
 	substate.PutSubstate(uint64(block.Index), 999, recording)
 
-	// Get state root
-	newStateHash, err := statedb.Commit(true)
-	if err != nil {
-		s.Log.Crit("Failed to commit state", "err", err)
-	}
 	block.Root = newStateHash
 	*evmBlock = evmcore.EvmBlock{
 		EvmHeader:    *evmcore.ToEvmHeader(block),

@@ -15,8 +15,8 @@ github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbt
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/DataDog/zstd v1.3.6-0.20190409195224-796139022798/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230529081604-7d938788b808 h1:uLns64eQjB8hcRDqHM4K85PsHNyeKFgh9RenYEQD/5c=
-github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230529081604-7d938788b808/go.mod h1:46+Wu+WvGt8SqMZg5zVdFvCcNE1oau9vArIHDohLHew=
+github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230605101121-84063bd50734 h1:3G60YYxd6VnpVfOIz85dlv9V7uNg3f4iMcMHy/4u18I=
+github.com/Fantom-foundation/go-ethereum-substate v0.0.0-20230605101121-84063bd50734/go.mod h1:46+Wu+WvGt8SqMZg5zVdFvCcNE1oau9vArIHDohLHew=
 github.com/Fantom-foundation/go-opera v0.0.0-20210329030859-db15cedd849d h1:Ol3H6tFCdT/6XfUTvFx9Q1QVIKeP52y1Z4AUBsRA84I=
 github.com/Fantom-foundation/go-opera v0.0.0-20210329030859-db15cedd849d/go.mod h1:OXcyWMXa612pwp73zmO5u8Xo4HO8Vu9l+adIVCFnXIg=
 github.com/Fantom-foundation/lachesis-base v0.0.0-20210323130105-a8e5ca7f15ac h1:0/WdGOQBQopByS+kVK6hNt4uPsQPW/rqvvgy/pkZwbA=
