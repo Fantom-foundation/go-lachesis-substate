@@ -43,7 +43,10 @@ func ApplyGenesis(db ethdb.Database, net *lachesis.Config) (*EvmBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	statedb.Prepare(common.Hash{}, common.Hash{}, 999)
+	statedb.SubstatePreAlloc = make(substate.SubstateAlloc)
+	statedb.SubstatePostAlloc = make(substate.SubstateAlloc)
+
+	// memorize block position of each tx, for indexing and origination scores
 	for addr, account := range net.Genesis.Alloc.Accounts {
 		statedb.AddBalance(addr, account.Balance)
 		statedb.SetCode(addr, account.Code)
@@ -71,7 +74,7 @@ func ApplyGenesis(db ethdb.Database, net *lachesis.Config) (*EvmBlock, error) {
 		substate.NewSubstateMessage(&msg),
 		substate.NewSubstateResult(receipt),
 	)
-	substate.PutSubstate(uint64(0), 999, recording)
+	substate.PutSubstate(uint64(0), 99999, recording)
 
 	// initial block
 	root, err := statedb.Commit(true)

@@ -180,7 +180,6 @@ func (s *Service) applyNewState(
 			}
 		}
 	}
-
 	// Get stateDB
 	stateHash := s.store.GetBlock(block.Index - 1).Root
 	statedb, err := s.app.StateDB(stateHash)
@@ -191,7 +190,10 @@ func (s *Service) applyNewState(
 	// Process EVM txs
 	block, evmBlock, totalFee, receipts := s.executeEvmTransactions(block, evmBlock, statedb)
 
-	statedb.Prepare(common.Hash{}, evmBlock.Hash, 999)
+	// clear content in substate alloc
+	statedb.SubstatePreAlloc = make(substate.SubstateAlloc)
+	statedb.SubstatePostAlloc = make(substate.SubstateAlloc)
+
 	// memorize block position of each tx, for indexing and origination scores
 	for i, tx := range evmBlock.Transactions {
 		// not skipped txs only
@@ -223,21 +225,24 @@ func (s *Service) applyNewState(
 
 	// Record substate of sfc
 	// create dummy message for sfc contract
-	tx := types.NewTransaction(0, common.Address{}, &big.Int{}, 0, &big.Int{}, []byte{}) 
-	msg, _ := tx.AsMessage(types.MakeSigner(s.config.Net.EvmChainConfig(), new(big.Int).SetUint64(uint64(block.Index))))
-	// create dummy ethereum block
-	etherBlock := evmBlock.RecordingEthBlock()
-	// create dummy receipt
-	receipt := types.NewReceipt([]byte{}, false, 0) 
-	// perform recording
-	recording := substate.NewSubstate(
-		make(substate.SubstateAlloc),
-		statedb.SubstatePostAlloc.Diff(statedb.SubstatePreAlloc),
-		substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
-		substate.NewSubstateMessage(&msg),
-		substate.NewSubstateResult(receipt),
-	)
-	substate.PutSubstate(uint64(block.Index), 999, recording)
+	outputAlloc := statedb.SubstatePostAlloc.Diff(statedb.SubstatePreAlloc)
+	if len(outputAlloc) > 0 {
+		tx := types.NewTransaction(0, common.Address{}, &big.Int{}, 0, &big.Int{}, []byte{}) 
+		msg, _ := tx.AsMessage(types.MakeSigner(s.config.Net.EvmChainConfig(), new(big.Int).SetUint64(uint64(block.Index))))
+		// create dummy ethereum block
+		etherBlock := evmBlock.RecordingEthBlock()
+		// create dummy receipt
+		receipt := types.NewReceipt([]byte{}, false, 0) 
+		// perform recording
+		recording := substate.NewSubstate(
+			make(substate.SubstateAlloc),
+			statedb.SubstatePostAlloc.Diff(statedb.SubstatePreAlloc),
+			substate.NewSubstateEnv(etherBlock, statedb.SubstateBlockHashes),
+			substate.NewSubstateMessage(&msg),
+			substate.NewSubstateResult(receipt),
+		)
+		substate.PutSubstate(uint64(block.Index), 99999, recording)
+	}
 
 	block.Root = newStateHash
 	*evmBlock = evmcore.EvmBlock{
